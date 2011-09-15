@@ -2,9 +2,22 @@ require "rubygems"
 require "sinatra"
 require 'next_muni'
 require 'json'
+require 'awesome_print'
 
 get "/" do
   redirect "index.html"
+end
+
+get "/routes.json" do
+  content_type :json
+  routes = NextMuni.get_routes('sf-muni').map { |route|
+    {
+      :bus_number => route[:id],
+      :times => [route[:title]]
+    }
+  }
+  ap routes
+  routes.to_json
 end
 
 get "/from.json" do
@@ -18,7 +31,32 @@ get "/from.json" do
     { :bus_number => "30x", :times => times_1 },
     { :bus_number => "41", :times => times_2 }
   ].to_json
+end
 
+get "/1_market.json" do
+  f_times = NextMuni.get_times("F", 5669)
+  cable_car_times = NextMuni.get_times("61", 3860)
+  f_times = ["No current predictions"] if f_times.empty?
+  cable_car_times = ["No current predictions"] if cable_car_times.empty?
+
+  content_type :json
+  [
+    { :bus_number => "F", :times => f_times },
+    { :bus_number => "Cable Car", :times => cable_car_times },
+  ].to_json
+end
+
+get "/other.json" do
+  times_45 = NextMuni.get_times("45", 4821)
+  times_45 = ["No current predictions"] if times_45.empty?
+  market_and_third = NextMuni.get_times("F", 5640)
+  market_and_third = ["No current predictions"] if market_and_third.empty?
+
+  content_type :json
+  [
+    { :bus_number => "45 Geary & Kearny", :times => times_45 },
+    { :bus_number => "F 3rd & Market", :times => market_and_third },
+  ].to_json
 end
 
 
@@ -37,12 +75,4 @@ get '/to.json' do
     { :bus_number => "41", :times => franklin_41 },
     { :bus_number => "45", :times => franklin_45 }
   ].to_json
-  
-  # laguna_30 = NextMuni.get_times('30x', 3948)
-  # laguna_41 = NextMuni.get_times('41', 6771)
-  # laguna_45 = NextMuni.get_times('45', 6771)
-
-  # @laguna_30 = ["No current predictions"] if @laguna_30.empty?
-  # @laguna_41 = ["No current predictions"] if @laguna_41.empty?
-  # @laguna_45 = ["No current predictions"] if @laguna_45.empty?
 end
