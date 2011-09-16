@@ -8,12 +8,22 @@ get "/" do
   redirect "index.html"
 end
 
+get "/routes/:route.json" do
+  content_type :json
+  NextMuni.get_stops(params[:route]).to_json
+end
+
+get '/times/:route/:stop.json' do
+  content_type :json
+  NextMuni.get_times(params[:route], params[:stop]).to_json
+end
+
 get "/routes.json" do
   content_type :json
   routes = NextMuni.get_routes('sf-muni').map { |route|
     {
-      :bus_number => route[:id],
-      :times => [route[:title]]
+      :id => route[:id],
+      :title => [route[:title]]
     }
   }
   ap routes
